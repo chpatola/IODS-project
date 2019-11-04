@@ -1,5 +1,6 @@
 ---
 title: "IODS course project"
+author: "Charlotte Patola"
 output:
   html_document:
     theme: cosmo
@@ -8,6 +9,7 @@ output:
     fig_caption: true
     fig_width: 6
     fig_height: 4
+    
 ---
 
 ***
