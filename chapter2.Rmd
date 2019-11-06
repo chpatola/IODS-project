@@ -1,7 +1,50 @@
-# Insert chapter 2 title here
+# Regression Analysis
 
-*Describe the work you have done this week and summarize your learning.*
+## Analysis task 1
+```{r}   
+imported_file <-read.csv(file="learning2014.csv")
+head(imported_file)
+str(imported_file)
+``` 
+The data has 166 rows (observations) and 7 columns (variables). It is a survey of approaches to learning, conducted in 2014 at University of Helsinki. The number of students responded is 183.
 
-- Describe your work and results clearly. 
-- Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods.
-- Assume the reader has no previous knowledge of your data or the more advanced methods you are using.
+## Analysis task 2
+```{r}  
+pairs(imported_file[-1])
+summary(imported_file)
+
+par(mfrow=c(2,3))
+  for(i in 2:7) {
+  boxplot(imported_file[,i], main=names(imported_file)[i])
+}
+```
+Conserning the distribution of the variables: age is quite centered betwwen 20 and 30 but have quite an amount of older outliers. Attitude and stra hav an even distribution centered around 30 and 3 respectivly, deep has some otliers with low scores, surf is quite evenly distributed but has one outlier with higher value. Poits is a bit skewed to higher values but with quite many persons with lower values too.
+Concerning the relationship between variables: points and attitude seem to have a connection but relationship between other variables is difficult to see based on the scatterplot diagram.
+
+
+## Analysis task 3 and 4
+```{r}  
+fit <- lm(points~attitude + age + stra,data=imported_file) 
+summary(fit)
+
+fit2 <- lm(points~attitude,data=imported_file) 
+summary(fit2)
+```
+
+My result is, not surprisingly thinking about what the scatterplots looked like, that only attitude has a significant correlation with points.
+
+The p value is approx. 0.00000000412 which is well below 0.1% chnage of getting this data if there were no relationship between attitude and points.
+One unit chnage in attitude raises the points with, on average, 0.35 points. Our (adjusted) R-squared tells us that attitude can explain 18% of the variation in points.
+
+## Analysis task 5
+```{r}  
+par(mfrow = c(2,2))
+plot(fit2, which = c(1,2,5))
+```
+
+A regression analysis assumes that the relationship between the explanatory and the dependent variable is linear. It also assumes that the errors are normally distributed, have a constant variance and size of given error does not depend on the explanatory variables. The normal Q-Q shows that the erros seem to be normally distributed. If the lain looks straigth, it is a sign of this. Residuals vs leverage shows that no outlier affects the model too much, as no point lies below the dotted Cook’s distance line. The residuals vs fitted picture shows if there is any specific pattern in the residual variations, which might be the case if the relationship between the explanatory and the dependent variable is not linear and if the error variance is not constant. In our case it looks quite ok, although there are some quite high residuals at y values 24-26.
+
+
+
+
+

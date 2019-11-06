@@ -6,3 +6,7 @@ I am exited about this course and eager to learn more about the statistics behin
 
 This is my GitHub repository: [link](https://github.com/chpatola/IODS-project)
 
+### Week 2
+
+I have taken some courses where regressionhas been a topic before, so this was not so many new things. However, alway good to repeat.
+
