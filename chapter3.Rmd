@@ -69,21 +69,20 @@ cbind(odd_ratio,conf_int)
 
 
 ```
+AIC (information lost in model) is 449.3
 
-When I look at the summary of the fitted model, I see that only absences has a significant (positive) relationship with high use of alcohol. On average absence go up 0.08 for one change in drinking status (from 0 to 1).
+When I look at the summary of the fitted model, I see that only absences has a significant (positive) relationship with high use of alcohol. 
 
-To have an address in an uran area is connected with a -0.36 lower rate for drinking status (from 0 to 1). This connection is, however, not significant.
+Confidence intervals that includes 1 implies that there is no real difference in output values (alcohol use) depending in the value of the input variable. As one can see, only the confidence intervals for absences excludes 1.
 
-The odds ratio shows that a student with an rural address is approx 47 % more likley to drink much, however, this number is not significant. You also see a very large confindent interval, witch empasizes this.
-
-When looking at the model as a whole, we can see that, for example, The coefficient for absences means that, having an urabna address and having an age & final grade of a fixed value, there will be a 196% increase in the odds of being a big drinker for a one-unit increase in absence.
-
+For a given age, G3 score and address type, the odds of a student being a havy drinker is up approx 5-14% per unit increase in absence.
 
 ## Analysis task 6
 ```{r} 
 ?log()
 ?predict
 model <- glm(high_use ~ absences, data = imported_file, family = "binomial")
+summary(model)
 imported_file$probabilities <-predict(model, type = "response")
 imported_file$prediction <-imported_file$probabilities >0.5
 head(imported_file, 2)
@@ -96,4 +95,4 @@ training_error <- total_wrong/nrow(imported_file)
 
 
 ```
-With the help of information on absense (only), I get a logistic regression model that predicts the drinking status with an error rat eof 29 %. If I compare that result to what one could achieve by just guessing, with a 50 % chance of correct guess, it is a bit better. Not a great model but better than none. However, the model is much better at identifying those that do not drink so much than identifying those that drink much. If we would like to find students that drink much (perhaps to support them in some way), the model would hardly be to any help at all as it - with this data - identifyed only 9 out of 114 students who drank much.
+With the help of information on absense (only), I get a logistic regression model that predicts the drinking status with an error rat eof 29 %. AIC is 451.45, so a litle more than in the model with all 4 variables. If I compare that result to what one could achieve by just guessing, with a 50 % chance of correct guess, it is a bit better. Not a great model but better than none. However, the model is much better at identifying those that do not drink so much than identifying those that drink much. If we would like to find students that drink much (perhaps to support them in some way), the model would hardly be to any help at all as it - with this data - identifyed only 9 out of 114 students who drank much.

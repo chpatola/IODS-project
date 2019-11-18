@@ -668,17 +668,40 @@ conf_int &lt;- confint(m) %&gt;% exp</code></pre>
 ## absences    1.0871915 1.041208391 1.139729
 ## G3          0.9412543 0.877558570 1.009031
 ## age         1.1272469 0.924299016 1.377414</code></pre>
-<p>When I look at the summary of the fitted model, I see that only absences has a significant (positive) relationship with high use of alcohol. On average absence go up 0.08 for one change in drinking status (from 0 to 1).</p>
-<p>To have an address in an uran area is connected with a -0.36 lower rate for drinking status (from 0 to 1). This connection is, however, not significant.</p>
-<p>The odds ratio shows that a student with an rural address is approx 47 % more likley to drink much, however, this number is not significant. You also see a very large confindent interval, witch empasizes this.</p>
-<p>When looking at the model as a whole, we can see that, for example, The coefficient for absences means that, having an urabna address and having an age &amp; final grade of a fixed value, there will be a 196% increase in the odds of being a big drinker for a one-unit increase in absence.</p>
+<p>AIC (information lost in model) is 449.3</p>
+<p>When I look at the summary of the fitted model, I see that only absences has a significant (positive) relationship with high use of alcohol.</p>
+<p>Confidence intervals that includes 1 implies that there is no real difference in output values (alcohol use) depending in the value of the input variable. As one can see, only the confidence intervals for absences excludes 1.</p>
+<p>For a given age, G3 score and address type, the odds of a student being a havy drinker is up approx 5-14% per unit increase in absence.</p>
 </div>
 <div id="analysis-task-6" class="section level2">
 <h2>Analysis task 6</h2>
 <pre class="r"><code>?log()
 ?predict
 model &lt;- glm(high_use ~ absences, data = imported_file, family = &quot;binomial&quot;)
-imported_file$probabilities &lt;-predict(model, type = &quot;response&quot;)
+summary(model)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = high_use ~ absences, family = &quot;binomial&quot;, data = imported_file)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -2.3754  -0.8181  -0.7282   1.2652   1.7475  
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept) -1.28190    0.15920  -8.052 8.12e-16 ***
+## absences     0.08982    0.02299   3.907 9.36e-05 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 465.68  on 381  degrees of freedom
+## Residual deviance: 447.45  on 380  degrees of freedom
+## AIC: 451.45
+## 
+## Number of Fisher Scoring iterations: 4</code></pre>
+<pre class="r"><code>imported_file$probabilities &lt;-predict(model, type = &quot;response&quot;)
 imported_file$prediction &lt;-imported_file$probabilities &gt;0.5
 head(imported_file, 2)</code></pre>
 <pre><code>##   school sex age address famsize Pstatus Medu Fedu    Mjob    Fjob reason
@@ -698,7 +721,7 @@ head(imported_file, 2)</code></pre>
 total_wrong&lt;- truth[&quot;FALSE&quot;,&quot;TRUE&quot;] + truth[&quot;TRUE&quot;,&quot;FALSE&quot;]
 
 training_error &lt;- total_wrong/nrow(imported_file)</code></pre>
-<p>With the help of information on absense (only), I get a logistic regression model that predicts the drinking status with an error rat eof 29 %. If I compare that result to what one could achieve by just guessing, with a 50 % chance of correct guess, it is a bit better. Not a great model but better than none. However, the model is much better at identifying those that do not drink so much than identifying those that drink much. If we would like to find students that drink much (perhaps to support them in some way), the model would hardly be to any help at all as it - with this data - identifyed only 9 out of 114 students who drank much.</p>
+<p>With the help of information on absense (only), I get a logistic regression model that predicts the drinking status with an error rat eof 29 %. AIC is 451.45, so a litle more than in the model with all 4 variables. If I compare that result to what one could achieve by just guessing, with a 50 % chance of correct guess, it is a bit better. Not a great model but better than none. However, the model is much better at identifying those that do not drink so much than identifying those that drink much. If we would like to find students that drink much (perhaps to support them in some way), the model would hardly be to any help at all as it - with this data - identifyed only 9 out of 114 students who drank much.</p>
 </div>
 </div>
 
