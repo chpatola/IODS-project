@@ -8,5 +8,9 @@ This is my GitHub repository: [link](https://github.com/chpatola/IODS-project)
 
 ### Week 2
 
-I have taken some courses where regressionhas been a topic before, so this was not so many new things. However, alway good to repeat.
+I have taken some courses where regressionhas been a topic before, so this was not so many new things. However, always good to repeat.
+
+### Week 3
+
+This week was tricker than last week. I had very little time to work on the tasks this time and had to skip some of the theory. I will catch up on it in the end of this week.
 

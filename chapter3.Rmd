@@ -1,0 +1,99 @@
+# Logistic Regression Analysis
+
+## Analysis task 2
+```{r}
+getwd()
+imported_file <-read.csv(file="data/allStudents.csv")
+colnames(imported_file)
+str(imported_file)
+``` 
+The data has 382 rows (observations) and 35 columns (variables). The file contains information about students in two Portuguise schools, among others family setting, grades in math and portuguise, alcohol use and study habits. More information is available here:[link] (https://archive.ics.uci.edu/ml/datasets/Student+Performance)
+
+## Analysis task 3
+
+The four interesting variables that I choose and want to study in order to see if there is an connection to alcohol use are:
+ *Age (numeric: from 15 to 22)
+ *Address (home addres type: binary: 'U' - urban or 'R' - rural)
+ *Absences (Amount of school absences: numeric: from 0 to 93)
+ *Final Grade (numeric: from 0 to 20)
+ 
+ Below are my hypothesis for each of the variables connection with alcohol consumption:
+ Age: The older a student, the higher probability of drinking
+ Address: It could be less to do on the countryside and students drink more there. It could also be that studnets in the city drink more because it is easier to get hold on alcohol there
+ Absences: Students who drink much can might do it due to problems at home and/or at school. This could mean they have more absences that others
+ Final grade: see explenation above.
+ 
+
+
+## Analysis task 4
+```{r}  
+library(tidyr); library(dplyr); library(ggplot2)
+
+# Bar plot distributions for each value
+gather(imported_file) %>% ggplot(aes(value)) + facet_wrap("key", scales = "free") + geom_bar()
+
+# Boxplots
+g1 <- ggplot(imported_file, aes(x = high_use, y = absences, col = address))
+g2 <- ggplot(imported_file, aes(x = high_use, y = age))
+g3 <- ggplot(imported_file, aes(x = high_use, y = G3))
+
+g1 + geom_boxplot() + ylab("Amount of absences") + xlab("High alcohol use")
+g2 + geom_boxplot() + ylab("Student age") + xlab("High alcohol use")
+g3 + geom_boxplot() + ylab("Final grade") + xlab("High alcohol use")
+
+#Barplot address
+counts <- table(imported_file$address,imported_file$high_use)
+barplot(counts, main="Students alcohol use use per address type, urban - rural",
+  xlab="High alcohol use", col=c("darkblue","blue"),
+  legend = rownames(counts))
+
+cor(imported_file$G3, imported_file$high_use)
+cor(imported_file$absences, imported_file$high_use)
+```
+
+Looking at the graphs, I could say that my theory about absences seem to be reasonable. Conserning age, students under 16 years do not seem to drink and more students above 17 years drink more.
+ Final grade seems to have a slight negative correlation with high alcohol use. Distribution of "heavy drinkers" seems to be quite same in the countryside and in the city.
+
+
+## Analysis task 5
+```{r}  
+m <- glm(high_use ~ address + absences + G3 + age, data = imported_file, family = "binomial")
+summary(m)
+
+#Odd ratios
+odd_ratio <- coef(m)  %>% exp()
+
+#Confidence intervals
+conf_int <- confint(m) %>% exp
+cbind(odd_ratio,conf_int)
+
+
+```
+
+When I look at the summary of the fitted model, I see that only absences has a significant (positive) relationship with high use of alcohol. On average absence go up 0.08 for one change in drinking status (from 0 to 1).
+
+To have an address in an uran area is connected with a -0.36 lower rate for drinking status (from 0 to 1). This connection is, however, not significant.
+
+The odds ratio shows that a student with an rural address is approx 47 % more likley to drink much, however, this number is not significant. You also see a very large confindent interval, witch empasizes this.
+
+When looking at the model as a whole, we can see that, for example, The coefficient for absences means that, having an urabna address and having an age & final grade of a fixed value, there will be a 196% increase in the odds of being a big drinker for a one-unit increase in absence.
+
+
+## Analysis task 6
+```{r} 
+?log()
+?predict
+model <- glm(high_use ~ absences, data = imported_file, family = "binomial")
+imported_file$probabilities <-predict(model, type = "response")
+imported_file$prediction <-imported_file$probabilities >0.5
+head(imported_file, 2)
+
+truth <-table(Using_much_alcohol =imported_file$high_use, Predicted_high_user=imported_file$prediction)
+
+total_wrong<- truth["FALSE","TRUE"] + truth["TRUE","FALSE"]
+
+training_error <- total_wrong/nrow(imported_file)
+
+
+```
+With the help of information on absense (only), I get a logistic regression model that predicts the drinking status with an error rat eof 29 %. If I compare that result to what one could achieve by just guessing, with a 50 % chance of correct guess, it is a bit better. Not a great model but better than none. However, the model is much better at identifying those that do not drink so much than identifying those that drink much. If we would like to find students that drink much (perhaps to support them in some way), the model would hardly be to any help at all as it - with this data - identifyed only 9 out of 114 students who drank much.
