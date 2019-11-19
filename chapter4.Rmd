@@ -1,0 +1,83 @@
+# Clustering and Classification
+
+## Analysis task 2
+```{r}
+library(MASS)
+Boston
+head(Boston,2)
+str(Boston)
+``` 
+The data has 506 rows (observations) and 14 columns (variables). All variables are numeric The file contains information about housing values in suburbs of Boston. More information is available here:[link] (https://stat.ethz.ch/R-manual/R-devel/library/MASS/html/Boston.html)
+
+## Analysis task 3
+```{r}  
+summary(Boston)
+library(purrr)
+library(tidyr)
+library(ggplot2)
+
+Boston %>%
+  keep(is.numeric) %>% 
+  gather() %>% 
+  ggplot(aes(value)) +
+    facet_wrap(~ key, scales = "free") +
+    geom_histogram()
+
+library(corrplot)
+boston_cor <-cor(Boston)
+boston_matrix <- as.matrix(boston_cor)
+corrplot(boston_matrix, method="circle") 
+
+par(mar=c(1,1,1,1))
+pairs(Boston)
+
+
+
+```
+Looking at the distributions of the variables, we can see that age and black are skewed to higher values, dis and lstat to lower values. rm and medv seem to have a ditribution close to normal and tax, rad and chas have clustered distributions.
+
+Concerning correlations, there is a high positive correlation between tax and rad and strong negatives between 
+
+
+## Analysis task 4
+```{r}  
+
+```
+
+Looking at the graphs, I could say that my theory about absences seem to be reasonable. Conserning age, students under 16 years do not seem to drink and more students above 17 years drink more.
+ Final grade seems to have a slight negative correlation with high alcohol use. Distribution of "heavy drinkers" seems to be quite same in the countryside and in the city.
+
+
+## Analysis task 5
+```{r}  
+
+
+
+```
+AIC (information lost in model) is 449.3
+
+When I look at the summary of the fitted model, I see that only absences has a significant (positive) relationship with high use of alcohol. 
+
+Confidence intervals that includes 1 implies that there is no real difference in output values (alcohol use) depending in the value of the input variable. As one can see, only the confidence intervals for absences excludes 1.
+
+For a given age, G3 score and address type, the odds of a student being a havy drinker is up approx 5-14% per unit increase in absence.
+
+## Analysis task 6
+```{r} 
+?log()
+?predict
+model <- glm(high_use ~ absences, data = imported_file, family = "binomial")
+summary(model)
+imported_file$probabilities <-predict(model, type = "response")
+imported_file$prediction <-imported_file$probabilities >0.5
+head(imported_file, 2)
+
+truth <-table(Using_much_alcohol =imported_file$high_use, Predicted_high_user=imported_file$prediction)
+
+total_wrong<- truth["FALSE","TRUE"] + truth["TRUE","FALSE"]
+
+training_error <- total_wrong/nrow(imported_file)
+
+
+```
+With the help of information on absense (only), I get a logistic regression model that predicts the drinking status with an error rat eof 29 %. AIC is 451.45, so a litle more than in the model with all 4 variables. If I compare that result to what one could achieve by just guessing, with a 50 % chance of correct guess, it is a bit better. Not a great model but better than none. However, the model is much better at identifying those that do not drink so much than identifying those that drink much. If we would like to find students that drink much (perhaps to support them in some way), the model would hardly be to any help at all as it - with this data - identifyed only 9 out of 114 students who drank much.
