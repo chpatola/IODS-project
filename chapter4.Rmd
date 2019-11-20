@@ -3,7 +3,6 @@
 ## Analysis task 2
 ```{r}
 library(MASS)
-Boston
 head(Boston,2)
 str(Boston)
 ``` 
@@ -31,41 +30,76 @@ pairs(Boston)
 
 
 ```
-The strongest positive correlations can be found between tax and rad and the strongest negative between dis and nox, dis and indus, dis and age as well as medv and lstat. Looking at the diskription of the variables (see link below), the relationships make sense.
+
+The strongest positive correlations can be found between tax and rad and the strongest negative between dis and nox, dis and indus, dis and age as well as medv and lstat. Looking at the description of the variables (see link above), the relationships make sense.
 
 Concerning the distributions of values: age and black are skewed to higher values, chas, tax and rad have two groups of values, rm and medv have sort of a normal distribution and dis and crim are skewed to low values.
 
 
 ## Analysis task 4
 ```{r}  
+#Standardize boston dataset
 boston_scaled <- scale(Boston)
 summary(boston_scaled)
-boston_scaled_df <- as.data.frame( boston_scaled)
-sd(boston_scaled_df$zn)
 
-bins <- quantile(boston_scaled)
+#Correct class back to dataframe
+class(boston_scaled)#matrix
+class(Boston)#data frame
+
+boston_scaled_df <- as.data.frame(boston_scaled)
+
+#Categorical variable of crime
+bins <- quantile(boston_scaled_df$crim)
 crime <- cut(boston_scaled_df$crim, breaks = bins, include.lowest = TRUE, labels = c("low", "med_low", "med_high", "high"))
-head(crime,2)
+table(crime)#We now have groups with quite same number of observations in each
 
-boston_scaled_df$crimeClass<-crime
-head(boston_scaled_df,2)
-colnames(boston_scaled_df)
-boston_scaled_df <- boston_scaled_df[,c("zn","indus","chas","nox","rm","age","dis","rad","tax","ptratio","black","lstat","medv","crimeClass")]
-head(boston_scaled_df,2)
-colnames(boston_scaled_df)
+#Remove original crim from the dataset
+boston_scaled_df <- dplyr::select(boston_scaled_df, -crim)
 
+# add the new categorical value to scaled data
+boston_scaled_df <- data.frame(boston_scaled_df, crime)
+colnames(boston_scaled_df)
+head(boston_scaled_df,3)
+
+#Divide dataset into train and test
 n <- nrow(boston_scaled_df)
 
 ind <- sample(n,  size = n * 0.8)
 
-train_boston <- boston_scaled[ind,]
-test_boston <- boston_scaled[-ind,]
+train_boston <- boston_scaled_df[ind,]
+test_boston <- boston_scaled_df[-ind,]
+
+# save the correct classes from test data
+correct_classes <- test_boston$crime
+
+# remove the crime variable from test data
+test_boston <- dplyr::select(test_boston, -crime)
+
 
 ```
-
+When we standardized the dataset, the mean became 0 and the standard devision 1. If we were to use the data for predicting a dependent variable, the effect of each explanatory varaibel would be equal and not larger for those with a larger scale (for example 0-100 in comparance to 0-5).
 
 ## Analysis task 5
 ```{r}  
+
+lda.boston <- lda(crime ~., data = train_boston)
+
+# the function for lda biplot arrows
+lda.arrows <- function(x, myscale = 1, arrow_heads = 0.1, color = "red", tex = 0.75, choices = c(1,2)){
+  heads <- coef(x)
+  arrows(x0 = 0, y0 = 0, 
+         x1 = myscale * heads[,choices[1]], 
+         y1 = myscale * heads[,choices[2]], col=color, length = arrow_heads)
+  text(myscale * heads[,choices], labels = row.names(heads), 
+       cex = tex, col=color, pos=3)
+}
+
+# target classes as numeric
+classes <- as.numeric(train_boston$crime)
+
+# plot the lda results
+plot(lda.boston, dimen = 2, col= classes, pch = classes)
+lda.arrows(lda.boston, myscale = 4)
 
 
 ```
@@ -74,11 +108,54 @@ test_boston <- boston_scaled[-ind,]
 
 ## Analysis task 6
 ```{r} 
+predictions <- predict(lda.boston, newdata = test_boston)
+
+table(correct = correct_classes, predicted = predictions$class)
+
+library(caret)
+
+confusionMatrix(predictions$class, correct_classes)
+
 
 ```
+When we look at the comparision on the real crime classes and the ones that the LDA model predicted, we see that it did quite well. Overall accuracy is 75 %
 
 ## Analysis task 7
+
+We did already standardize the Boston dataset in task 4.
+
 ```{r} 
+#Calculated distances between suburbs
+
+# euclidean distance matrix
+dist_eu <- dist(boston_scaled)
+summary(dist_eu)
+
+#Run k-means algorithm on the dataset
+km <-kmeans(boston_scaled, centers = 3)
+
+pairs(boston_scaled, col = km$cluster)
+
+#Investigate what is the optimal number of clusters 
+set.seed(11)
+k_max <- 20
+
+twcss <- sapply(1:k_max, function(k){kmeans(boston_scaled, k)$tot.withinss})
+qplot(x = 1:k_max, y = twcss, geom = 'line')
+
+#Run k means again with different number of clusters
+
+km <-kmeans(boston_scaled, centers = 6)
+
+pairs(boston_scaled, col = km$cluster)
+
+
+
 
 ```
 
+The distances between suburbs (in relation to all standardized variables) is between minimi 0.1243 to maximum 14.3970. Mean is 4.9111.
+
+When we look at the graph, it seems that the more clusters, the better. However, too many clusters reduce the use of dividing data into peaces. At an extreme case, we have one cluster for each data point. The decrease slope flattens out quite mcuh after approx. 6-7, so we could probably choose that as opimal number of clusters. 
+
+With 6 clusters, we have divided the housing suburbs into 7 different groups, where all suburbs are more similar within the group than they are with suburbs in other groups.
