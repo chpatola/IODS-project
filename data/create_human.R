@@ -1,4 +1,6 @@
-#Charlotte Patola, 21.11.2019
+#Charlotte Patola, 21.11.2019 & 25.11.209
+
+#*** WEEK 4 ***
 
 #Data Wrangling 1-2
 
@@ -43,6 +45,55 @@ library(dplyr)
 human <- inner_join(gii,hd, by = "Country")
 dim(human)
 
+#*** WEEK 5 ***
 
+#Data wranglig 1
+colnames(human)
+str(human$gni)
+head(human$gni, 5) #The GNI variable is now in character format with , as thousand separator
 
+?gsub
+gni_format <-gsub(",","",human$gni)
+gni_format_num <- as.numeric(gni_format)
+
+hum_end <- human[,-18]
+colnames(hum_end)
+dim(hum_end)
+hum_end$gni_num <- gni_format_num
+colnames(hum_end)
+
+#Data wranglig 2
+
+col_to_keep <- c("Country","fem_male_ed","fem_male_job", "years_ed" ,"lifeexp" ,"gni_num",
+                 "mat_mort","ad_birth_rate","parliament")
+
+humanData <- hum_end[,col_to_keep]
+colnames(humanData)
+
+#Data wranglig 3
+humanData <-na.omit(humanData)
+dim(humanData)#162 observatiosleft
+
+#Data wranglig 4
+
+humanData$Country# rows 156-162 are regions and not countries
+
+humanData<- humanData[1:155,]
+dim(humanData)#155 observations left
+
+#Data wranglig 5
+
+countries<- humanData[,"Country"]
+colnames(humanData)
+humanData<-humanData[,-1]
+colnames(humanData)
+rownames(humanData) <- countries
+
+head(humanData,2)
+dim(humanData)#155 countries with 8 variables
+
+getwd()
+setwd("data")
+getwd()
+write.csv(humanData, file="human.csv")
 
