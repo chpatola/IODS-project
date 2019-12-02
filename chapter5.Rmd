@@ -10,6 +10,7 @@ head(humanDev_numeric,2)
 ggpairs(humanDev_numeric)
 
 ``` 
+
 Looking at the distributions of the data and the relationships between them, we can say that many of the variables do not have connections with each other but years_ed and life exp seem to have a positive realtinship with a correlation of 0.79. Also birth_rate and mat_mort seem to have a relationship with a correlation of 0.76. Life exp and birth rate have a negative relationship with a correlation of 0.73 and mat mortality and years educ also have a negative relationship. The negative correlation is 0.74. Birt rate is also negatively correlated with years educ (0.7).
 
 Concerning the distribution, only years education seems to have a normal distribution. fem_male educ, fem_male_job and parliament also come close to a normal distribution but the other vaiables have skewed distributions.
@@ -40,6 +41,7 @@ biplot(pca_human_stand, choices = 1:2, col=c("black","blue"))
 
 
 ```
+
 When we standardized the dataset, the mean became 0 and the standard devision 1. In the unstandardized datasets, variables with more variations due to broader range of values (like GNI numeric) are given much more importance in the PCA. When we standardize the variables, differences in scale do not matter anymore and we get a more balanced picture of how the different variables affet the variations in the model. We clearly see the difference between the standardized and not standardized data in our biplots and the model summaries. In the unstandardized version, GNI numeric explains most of the variation and as it affects PC1, PC1 accounts for as much as >99% of the variation. In the standardized version, we need all 8 PC:s to get up to the same explenational percent.
 
 ## Analysis task 4
@@ -65,5 +67,6 @@ summary(mca_model)
 plot(mca_model, invisible=c("ind"))
 
 ```
+
 The tea dataset contains 300 rows and 36 columns. The individuals not home is different from the rest of the individulas. Probably because if you are not at home (ie for example at work), you are less likely to sit down with a good cup of tea. The rst of the individuals seem to have a relatiosnhip. Interesting is that out of them, lemon and no sugar are further from each other. If you have lemon in your tea, you might be more likely to alo have sugar in it.
 
