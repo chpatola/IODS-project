@@ -1,0 +1,158 @@
+# Longitudinal data
+
+## Analysis task 1
+```{r}
+#Importing data and inspecting it
+library(dplyr)
+library(tidyr)
+
+#rats
+rats <- read.csv("data/rats.csv")
+summary(rats)
+str(rats)
+
+rats$ID <- as.factor(rats$ID)
+rats$Group <- as.factor(rats$Group)
+str(rats)
+
+#Make time to integer
+
+rats$time <- as.character(rats$time)
+rats$time <- as.numeric(gsub("WD","",rats$time))
+str(rats)
+summary(rats)
+
+#Plot the weight development of the individual rats
+library(ggplot2)
+
+ggplot(rats, aes(x = time, y = gram, linetype = ID)) +
+  geom_line() +
+  scale_linetype_manual(values = rep(1:10, times=4)) +
+  facet_grid(. ~ Group, labeller = label_both) +
+  theme(legend.position = "none") + 
+  scale_y_continuous(limits = c(min(rats$gram), max(rats$gram)))
+
+#Standardize the weights in order to even clearer see the weight development
+
+rats$gram_sd <- scale(rats$gram)
+summary(rats)
+
+#Plot the standardized curves
+
+ggplot(rats, aes(x = time, y = gram_sd, linetype = ID)) +
+  geom_line() +
+  scale_linetype_manual(values = rep(1:10, times=4)) +
+  facet_grid(. ~ Group, labeller = label_both) +
+  theme(legend.position = "none") + 
+  scale_y_continuous(limits = c(min(rats$gram_sd), max(rats$gram_sd)))
+
+#Look into summative varaible mean for the different groups
+
+#Create new tabel with mean weight per individ
+
+rats_summative<- rats %>%
+  filter(time > 0) %>%
+  group_by(Group, ID) %>%
+  summarise( mean_gram=mean(gram) ) %>%
+  ungroup()
+
+str(rats_summative)
+
+#Visualize the mean weights per group
+
+ggplot(rats_summative, aes(x = Group, y = mean_gram)) +
+  geom_boxplot() +
+  stat_summary(fun.y = "mean", geom = "point", shape=23, size=2, fill = "black") +
+  scale_y_continuous(name = "mean(gram)")
+
+#The outlier we earlier saw in group 2 is very visible in this boxplot graph. It could be vise to remove it
+#We filter it out and redraw the plot
+
+rats_summative_no_outlier <- rats_summative %>% filter(mean_gram <570)
+
+ggplot(rats_summative_no_outlier, aes(x = Group, y = mean_gram)) +
+  geom_boxplot() +
+  stat_summary(fun.y = "mean", geom = "point", shape=23, size=2, fill = "black") +
+  scale_y_continuous(name = "mean(gram)")
+
+#Check that means really are different for the groups with anova test -> they are clearly!
+
+oneway.test(mean_gram~Group,data=rats_summative_no_outlier,var.equal=TRUE) 
+
+
+``` 
+
+When we plot the weight changes of the rats on an individual level, we see that the tendency is that the weight increases. Group 1 differs from group 2 and 3 as they individuals that belong to that group are much lighter than the two others, both in the start and in the end of the time period. Group 2 also has one individ whos weight, through all the weeks, is quite much higher than the rest of the rats.
+
+If we standardize the weights and do the plot again, we see the below pictured information even clearer.
+
+In order to further familarize ourselves with the data, we can look at it on a summative level. In the boxplot graph, we look at the means - and general distributions - of the different groups. Are they different? The boxplot clearly indicates so and also that the variation within groups is quite small but we can control it with a anova test. The p value of the test clearly shows ut the the means of the 3 different groups are highly unlikely to be same.
+
+
+## Analysis task 2
+```{r}  
+#Importing data and inspecting it
+#bprs
+bprs <- read.csv("data/bprs.csv")
+bprs$treatment <- as.factor(bprs$treatment)
+bprs$subject <- as.factor(bprs$subject)
+str(bprs)
+
+#Extract week number from week strings
+bprs$weeks <- as.character(bprs$weeks)
+str(bprs)
+
+bprs$week_int <- as.numeric(gsub("week","",bprs$weeks))
+summary(bprs) #week from 0  (baseline) to 8
+str(bprs)
+head(bprs,3)
+
+#We start our analysis with pretending the observations are independent (ie, we ignore the fact that they are done on same objects during different time periods) and use a normal linear regression
+
+dim(bprs)#360 observations on 5 variables
+
+bprs_reg <- lm(bprs_score ~ week_int + treatment, data = bprs)
+summary(bprs_reg)
+
+#Plot to see signs that bprs score is dependent on treatment -> could be but difficult to say
+library(ggplot2)
+library(GGally)
+ggpairs(bprs[,c(1,4:5)])
+
+#Random intercept model
+library(lme4)
+bprs_rim <- lmer(bprs_score ~ week_int + treatment + (1 | subject), data = bprs, REML = FALSE)
+summary(bprs_rim)
+  
+#Random Intercept and Random Slope Model
+bprs_rirsm <-lmer(bprs_score ~ week_int + treatment  + (week_int | subject), data = bprs, REML = FALSE)
+summary(bprs_rirsm)
+
+#Anova analysis to see defference between the two Random intercept models
+anova(bprs_rirsm, bprs_rim )
+
+#Random Intercept and Random Slope Model with interaction
+bprs_rirsmwi <- lmer(bprs_score ~ week_int * treatment  + (week_int | subject), data = bprs, REML = FALSE)
+summary(bprs_rirsmwi)
+
+#Anova analysis to see defference between the last two Random intercept models
+anova(bprs_rirsmwi,bprs_rirsm)
+
+
+```
+
+When we start analysing our data and first take a normal linear regression model (see comments imbedded in code above), we an see that the time factor is significant with an average decrease in points with 2.3 per week increase. The treatment factor is not significant in this model.
+
+Next, we will use the Random Intercept Model. It introduces a constant random "error term" connected to each subject. This may arise due to, fore example, a subject constantly exeggregating the effects measured. Most commoly reporting higher/lower values on a questionary than another subject with same "symptohms" would have done. In the summary of the model, we see that the random effects of the intercept from the subject has a standard deviation of 6.9, which can be seen to be quite high. If we look at the fixed effects, we see that "week" is still significant with an average decrease in points with 2.3 per week. The treatment term is still insignificant.
+
+The Random Intercept and Random Slope Model that is tested next allows for each observations slope - and not only intercept - to differ. This means that not only is a random intercept added or substracted to each individual in order to estimate a point score but how much a change in time affects it. When we look at the summary of this model, we see that the sd of the random effects of subject is even higher than in the last model 8.1 and that the sd of week is only 1.0. Looking at the fixed effects, an increase on week still decreaseses point score with on average 2.3. Significance for week and treatment (=yes respectively no) is same as in the 2 earlier models. 
+
+An anova analysis on the two Random intercept outputs show us that the second model is to prefere before the first.
+
+Our final model is the Random Intercept and Random Slope Model with interaction. It allows for an interaction between treatment and time and not only between individual and these. In the output from this model, we see similar values in the random effects as in the last model, sd for random effects of subject is still 8.1 and week 1.0. In the fixed effects, "week" is still significant with an average decrease in points with 2.7 per week. The treatment term is still insignificant.
+
+The anova analysis of the two last models show that the third model is a little bit more precise than the second.
+
+
+
+
